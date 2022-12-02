@@ -1,15 +1,27 @@
 fun main() {
+    fun solve(input: List<String>): List<Int> {
+        val elves = input.joinToString(":")
+            .split("::")
+            .map { it.split(":") }
+            .map { it.map { it.toInt() } }
+            .map { it.sum() }
+
+        return elves.sorted()
+    }
+
     fun part1(input: List<String>): Int {
-        return input.size
+        return solve(input).last()
     }
 
     fun part2(input: List<String>): Int {
-        return input.size
+        val elves = solve(input)
+        return elves.last() + elves.get(elves.size - 2) + elves.get(elves.size - 3)
     }
 
     // test if implementation meets criteria from the description, like:
     val testInput = readInput("Day01_test")
-    check(part1(testInput) == 1)
+    println(part1(testInput))
+    check(part1(testInput) == 24000)
 
     val input = readInput("Day01")
     println(part1(input))
