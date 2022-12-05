@@ -18,7 +18,6 @@ fun main() {
         return elves.last() + elves.get(elves.size - 2) + elves.get(elves.size - 3)
     }
 
-    // test if implementation meets criteria from the description, like:
     val testInput = readInput("Day01_test")
     println(part1(testInput))
     check(part1(testInput) == 24000)

@@ -79,13 +79,12 @@ fun main() {
         }.sum()
     }
 
-    // test if implementation meets criteria from the description, like:
     val testInput = readInput("Day02_test")
     println(part1(testInput))
     check(part1(testInput) == 15)
 
     val input = readInput("Day02")
-    check(part2(testInput) == 12)
     println(part1(input))
+    check(part2(testInput) == 12)
     println(part2(input))
 }
