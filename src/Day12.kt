@@ -1,46 +1,6 @@
 fun main() {
 
-    fun bfs(
-        start: Pair<Int, Int>,
-        end: Pair<Int, Int>,
-        edges: Map<Pair<Int, Int>, List<Pair<Int, Int>>>,
-        cost: Map<Pair<Int, Int>, Int>
-    ): Int {
-        val parent = mutableMapOf<Pair<Int, Int>, Pair<Int, Int>>()
-        val visited = mutableSetOf<Pair<Int, Int>>()
-        val queue = mutableListOf<Pair<Int, Int>>()
-        queue.add(start)
-        while (queue.isNotEmpty()) {
-            val next = queue.removeFirst()
-            if (visited.contains(next))
-                continue
-            visited.add(next)
-
-            if (next == end) {
-                break
-            }
-            val possibleNeighbours = edges.getOrDefault(next, emptyList())
-            val actualNeighbours = possibleNeighbours.filter {
-                cost.getOrDefault(it, 0) <= cost.getOrDefault(next, -1) + 1
-            }
-
-            actualNeighbours.forEach {
-                if (!queue.contains(it)) {
-                    if (parent[it] == null)
-                        parent[it] = next
-                    queue.add(it)
-                }
-            }
-        }
-        val path = mutableListOf(end)
-        while (path.last() != start) {
-            val parentNode = parent.getOrDefault(path.last(), Pair(-1, -1))
-            path.add(parentNode)
-        }
-        return path.size - 1
-    }
-
-    fun part1(input: List<String>): Int {
+    fun buildGraph(input: List<String>): Triple<MutableMap<Pair<Int, Int>, List<Pair<Int, Int>>>, MutableMap<Pair<Int, Int>, Int>, Pair<Pair<Int, Int>,Pair<Int,Int>>> {
         val edges = mutableMapOf<Pair<Int, Int>, List<Pair<Int, Int>>>()
         val cost = mutableMapOf<Pair<Int, Int>, Int>()
         val chunked = input.map { it.chunked(1) }
@@ -73,12 +33,103 @@ fun main() {
                 }
             }
         }
+        return  Triple(edges, cost, Pair(start,end))
+    }
 
+
+    fun bfs(
+        start: Pair<Int, Int>,
+        end: Pair<Int, Int>,
+        edges: Map<Pair<Int, Int>, List<Pair<Int, Int>>>,
+        cost: Map<Pair<Int, Int>, Int>
+    ): Int {
+        val parent = mutableMapOf<Pair<Int, Int>, Pair<Int, Int>>()
+        val visited = mutableSetOf<Pair<Int, Int>>()
+        val queue = mutableListOf<Pair<Int, Int>>()
+        queue.add(start)
+        while (queue.isNotEmpty()) {
+            val next = queue.removeFirst()
+            if (visited.contains(next))
+                continue
+            visited.add(next)
+
+            if (next == end) {
+                break
+            }
+
+            val actualNeighbours = edges.getOrDefault(next, emptyList()).filter {
+                cost[it]!! <= cost[next]!! + 1
+            }
+            if (actualNeighbours.isEmpty()) throw IllegalStateException("no neighbours!")
+            actualNeighbours.forEach {
+                if (!queue.contains(it)) {
+                    if (parent[it] == null)
+                        parent[it] = next
+                    queue.add(it)
+                }
+            }
+        }
+        val path = mutableListOf(end)
+        while (path.last() != start) {
+            val parentNode = parent[path.last()]
+            path.add(parentNode!!)
+        }
+        return path.size - 1
+    }
+
+    fun bfsPredicate(
+        start: Pair<Int, Int>,
+        end: (Pair<Int, Int>) -> Boolean,
+        edges: Map<Pair<Int, Int>, List<Pair<Int, Int>>>,
+        cost: Map<Pair<Int, Int>, Int>
+    ): Int {
+        val parent = mutableMapOf<Pair<Int, Int>, Pair<Int, Int>>()
+        val visited = mutableSetOf<Pair<Int, Int>>()
+        val queue = mutableListOf<Pair<Int, Int>>()
+        var endNode = Pair(-1, -1)
+        queue.add(start)
+        while (queue.isNotEmpty()) {
+            val next = queue.removeFirst()
+            if (visited.contains(next))
+                continue
+            visited.add(next)
+
+            if (end(next)) {
+                endNode = next
+                break
+            }
+
+            val possibleNeighbours = edges.getOrDefault(next, emptyList())
+            val actualNeighbours = possibleNeighbours.filter {
+                cost[next]!! - 1 <= cost[it]!! && it != start
+            }
+            if (actualNeighbours.isEmpty()) throw IllegalStateException("no neighbours!")
+            actualNeighbours.forEach {
+                if (!queue.contains(it)) {
+                    if (parent[it] == null)
+                        parent[it] = next
+                    queue.add(it)
+                }
+            }
+        }
+        val path = mutableListOf(endNode)
+        while (path.last() != start) {
+            val parentNode = parent[path.last()]
+            path.add(parentNode!!)
+        }
+        return path.size - 1
+    }
+
+    fun part1(input: List<String>): Int {
+        val (edges, cost, startEnd) = buildGraph(input)
+        val (start,end) = startEnd
         return bfs(start, end, edges, cost)
     }
 
     fun part2(input: List<String>): Int {
-        return -1
+        val (edges, cost, startEnd) = buildGraph(input)
+        val (_,end) = startEnd
+        return bfsPredicate(end, { node -> cost[node] == 0 }, edges, cost)
     }
 
 
@@ -94,7 +145,8 @@ fun main() {
     )
 
     expect(
-        14561971968,
+        399,
         part2(input)
     )
+    println(part2(input))
 }
